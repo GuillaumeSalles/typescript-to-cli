@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as fs from "fs";
 import { promisify } from "util";
 import * as ts from "typescript";
@@ -34,6 +36,8 @@ exports.default.apply(null, TYPESCRIPT_TO_CLI_PREPARE_PARAMS(${JSON.stringify(
 `
   );
   await chmod(outputFile, "755");
+
+  process.stdout.write(`Cli generated : ${outputFile}`);
 }
 
 if (process.argv.length < 2) {
@@ -41,7 +45,15 @@ if (process.argv.length < 2) {
   process.exit(1);
 }
 
-generateCli(process.argv[2], {
-  target: ts.ScriptTarget.ES5,
-  module: ts.ModuleKind.CommonJS
-});
+try {
+  generateCli(process.argv[2], {
+    target: ts.ScriptTarget.ES5,
+    module: ts.ModuleKind.CommonJS
+  }).catch(err => {
+    process.stderr.write(err.message);
+    process.exit(1);
+  });
+} catch (err) {
+  process.stderr.write(err.message);
+  process.exit(1);
+}
