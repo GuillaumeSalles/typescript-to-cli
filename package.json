@@ -2,7 +2,7 @@
   "name": "typescript-to-cli",
   "version": "0.1.0",
   "description": "Create a cli from a typescript module.",
-  "main": "index.js",
+  "main": "./bin/index.js",
   "scripts": {
     "start": "yarn build",
     "build": "tsc",
