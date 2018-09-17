@@ -1,0 +1,43 @@
+{
+  "name": "typescript-to-cli",
+  "version": "0.1.0",
+  "description": "Create a cli from a typescript module.",
+  "main": "index.js",
+  "scripts": {
+    "start": "yarn build",
+    "build": "tsc",
+    "test": "jest --watch"
+  },
+  "keywords": [
+    "typescript",
+    "cli",
+    "command-line"
+  ],
+  "bin": {
+    "typescript-to-cli": "./bin/index.js"
+  },
+  "engines": {
+    "node": ">= 8"
+  },
+  "author": "Guillaume Salles",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "10.9.4",
+    "typescript": "3.0.3"
+  },
+  "devDependencies": {
+    "jest": "23.6.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.ts$": "<rootDir>/preprocessor.js"
+    },
+    "testMatch": [
+      "**/*.test.ts"
+    ]
+  }
+}

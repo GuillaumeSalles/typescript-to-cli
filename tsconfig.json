@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "bin",
+    "sourceMap": true,
+    "strictNullChecks": true
+  },
+  "files": ["./node_modules/@types/node/index.d.ts"],
+  "include": ["src/index.ts", "src/wrapper.ts"],
+  "exclude": ["node_modules"]
+}
