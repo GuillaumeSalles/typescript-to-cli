@@ -37,7 +37,7 @@ exports.default.apply(null, TYPESCRIPT_TO_CLI_PREPARE_PARAMS(${JSON.stringify(
   );
   await chmod(outputFile, "755");
 
-  process.stdout.write(`Cli generated : ${outputFile}`);
+  console.log(`Cli generated: ${outputFile}`);
 }
 
 if (process.argv.length < 2) {
