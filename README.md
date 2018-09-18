@@ -58,6 +58,22 @@ $ ./send-ships.js --destination=Europa --number-of-ships=2
 You sent 2 ships to Europa.
 ```
 
+### Argument validation
+
+Missing argument
+
+```console
+$ ./send-ships.js --number-of-ships 5 --armed
+Missing argument --destination
+```
+
+Invalid argument type
+
+```console
+$ ./send-ships.js --destination Mars --number-of-ships X --armed
+--number-of-ships should be a number
+```
+
 ### Display help
 
 ```console
