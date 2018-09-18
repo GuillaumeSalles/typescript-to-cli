@@ -86,23 +86,35 @@ ${parametersDocumentation(signature.parameters)}
     return Number(value);
   }
 
+  function extractValueFromArg(
+    parameter: CliParameter,
+    value: string
+  ): string | number {
+    switch (parameter.type) {
+      case CliType.Number:
+        return extractNumberFromArg(value, parameter.name);
+      case CliType.String:
+        return extractStringFromArg(value, parameter.name);
+      default:
+        throw new Error(`Invalid argument type ${parameter.type}`);
+    }
+  }
+
   function extractParamFromArgv(parameter: CliParameter, argv: string[]): any {
     if (parameter.type === CliType.Boolean) {
       return argv.some(arg => arg === parameter.name);
     }
 
     for (let i = 0; i < argv.length; i++) {
-      if (argv[i] !== parameter.name) {
-        continue;
+      if (argv[i] === parameter.name) {
+        return extractValueFromArg(parameter, argv[i + 1]);
       }
 
-      switch (parameter.type) {
-        case CliType.Number:
-          return extractNumberFromArg(argv[i + 1], parameter.name);
-        case CliType.String:
-          return extractStringFromArg(argv[i + 1], parameter.name);
-        default:
-          throw new Error(`Invalid argument type ${parameter.type}`);
+      if (argv[i].startsWith(parameter.name + "=")) {
+        return extractValueFromArg(
+          parameter,
+          argv[i].slice(parameter.name.length + 1)
+        );
       }
     }
 

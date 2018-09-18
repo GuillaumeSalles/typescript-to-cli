@@ -33,9 +33,9 @@ Options:
     ).toEqual(stdout(`You sent 5 armed ships to Mars\n`));
   });
 
-  // test("should handle = between argument and value", async () => {
-  //   expect(
-  //     await callCli(["--destination=Mars", "--number-of-ships=5", "--armed"])
-  //   ).toEqual(stdout(`You sent 5 armed ships to Mars\n`));
-  // });
+  test("should handle = between argument and value", async () => {
+    expect(
+      await callCli(["--destination=Mars", "--number-of-ships=5", "--armed"])
+    ).toEqual(stdout(`You sent 5 armed ships to Mars\n`));
+  });
 });
