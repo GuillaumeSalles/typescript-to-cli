@@ -4,11 +4,6 @@ function TYPESCRIPT_TO_CLI_PREPARE_PARAMS(
   signature: CliSignature,
   argv: string[]
 ) {
-  function exitWithError(message: string) {
-    process.stderr.write(message);
-    process.exit(1);
-  }
-
   function padWithWhiteSpaces(str: string, length: number) {
     for (let i = str.length; i < length; i++) {
       str += " ";
@@ -68,6 +63,29 @@ ${parametersDocumentation(signature.parameters)}
     return false;
   }
 
+  function extractStringFromArg(
+    value: string | undefined,
+    parameter: string
+  ): string {
+    if (value === undefined) {
+      throw new Error(`Missing value for argument ${parameter}`);
+    }
+    return value;
+  }
+
+  function extractNumberFromArg(
+    value: string | undefined,
+    parameter: string
+  ): number {
+    if (value === undefined) {
+      throw new Error(`Missing value for argument ${parameter}`);
+    }
+    if (!isNumber(value)) {
+      throw new Error(`${parameter} should be a number`);
+    }
+    return Number(value);
+  }
+
   function extractParamFromArgv(parameter: CliParameter, argv: string[]): any {
     if (parameter.type === CliType.Boolean) {
       return argv.some(arg => arg === parameter.name);
@@ -79,19 +97,16 @@ ${parametersDocumentation(signature.parameters)}
       }
 
       switch (parameter.type) {
-        case CliType.String:
-          return argv[i + 1];
         case CliType.Number:
-          if (isNumber(argv[i + 1])) {
-            return Number(argv[i + 1]);
-          }
-          exitWithError(`${parameter.name} should be a number`);
+          return extractNumberFromArg(argv[i + 1], parameter.name);
+        case CliType.String:
+          return extractStringFromArg(argv[i + 1], parameter.name);
         default:
-          exitWithError(`Invalid argument type ${parameter.type}`);
+          throw new Error(`Invalid argument type ${parameter.type}`);
       }
     }
 
-    exitWithError(`Missing argument ${parameter.name}`);
+    throw new Error(`Missing argument ${parameter.name}`);
   }
 
   if (argv.length === 0 || argv[0] === "--help") {
@@ -99,5 +114,10 @@ ${parametersDocumentation(signature.parameters)}
     return;
   }
 
-  return signature.parameters.map(p => extractParamFromArgv(p, argv));
+  try {
+    return signature.parameters.map(p => extractParamFromArgv(p, argv));
+  } catch (err) {
+    process.stderr.write(err.message);
+    process.exit(1);
+  }
 }
