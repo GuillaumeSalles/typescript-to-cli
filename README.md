@@ -2,7 +2,7 @@
 
 > Transform your typescript module into a CLI
 
-typescript-to-cli checks the default export of your typescript module and create a CLI from it.
+typescript-to-cli leverages the typescript type system to generate a CLI based on the exported function signature of your module.
 
 - **Parses** the program arguments
 - **Validates** if the arguments have the right type
@@ -60,3 +60,5 @@ Options:
 - Supports only boolean, number and string
 - All arguments are required
 - Don't accept a custom `tsconfig.json`
+- No argument shorcut
+- Only white spaces between argument and value
