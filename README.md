@@ -9,9 +9,7 @@ typescript-to-cli checks the default export of your typescript module and create
 - **Generates help** based on the documentation
 
 :warning:
-This is an experimental project!
-
-A lot of features are missing and it probably contains some bugs.
+This is an experimental project! A lot of features are missing and it probably contains some bugs.
 :warning:
 
 ## Usage
@@ -37,10 +35,11 @@ export default function(
 }
 ```
 
-```sh
-$ npx typescript-to-cli ./sendShip.ts
+```console
+$ npx typescript-to-cli ./send-ships.ts
+send-ships CLI has been generated.
 
-$ ./sendShip.js --destination Mars --number-of-ships 5 --armed
+$ ./send-ships.js --destination Mars --number-of-ships 5 --armed
 You sent 5 armed ships to Mars.
 
 $ ./send-ships.js --help
