@@ -36,9 +36,10 @@ export default function(
 ```
 
 ```console
-$ npx typescript-to-cli ./sendShip.ts
+$ npx typescript-to-cli ./send-ships.ts
+send-ships CLI has been generated.
 
-$ ./sendShip.js --destination Mars --number-of-ships 5 --armed
+$ ./send-ships.js --destination Mars --number-of-ships 5 --armed
 You sent 5 armed ships to Mars.
 
 $ ./send-ships.js --help
