@@ -17,7 +17,7 @@ describe("number", () => {
 
   test("should handle missing value", async () => {
     expect(await callCli(["--x"])).toEqual(
-      stderr("Missing value for argument --x")
+      stderr("Missing value for argument --x\n")
     );
   });
 });

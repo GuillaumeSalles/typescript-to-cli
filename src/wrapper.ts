@@ -129,7 +129,7 @@ ${parametersDocumentation(signature.parameters)}
   try {
     return signature.parameters.map(p => extractParamFromArgv(p, argv));
   } catch (err) {
-    process.stderr.write(err.message);
+    process.stderr.write(err.message + "\n");
     process.exit(1);
   }
 }
