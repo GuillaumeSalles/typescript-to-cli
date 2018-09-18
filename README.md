@@ -14,6 +14,8 @@ This is an experimental project! A lot of features are missing and it probably c
 
 ## Usage
 
+Let's take the following module as an example.
+
 **send-ships.ts**
 
 ```typescript
@@ -35,13 +37,30 @@ export default function(
 }
 ```
 
+### Create the CLI
+
 ```console
 $ npx typescript-to-cli ./send-ships.ts
-send-ships CLI has been generated.
+send-ships.js CLI has been generated.
+```
 
+### Call the created CLI
+
+```console
 $ ./send-ships.js --destination Mars --number-of-ships 5 --armed
 You sent 5 armed ships to Mars.
+```
 
+Or with the `=` symbol between arguments and values
+
+```console
+$ ./send-ships.js --destination=Europa --number-of-ships=2
+You sent 2 ships to Europa.
+```
+
+### Display help
+
+```console
 $ ./send-ships.js --help
 Usage send-ships.js [options]
 
@@ -61,4 +80,3 @@ Options:
 - All arguments are required
 - Don't accept a custom `tsconfig.json`
 - No argument shorcut
-- Only white spaces between argument and value
