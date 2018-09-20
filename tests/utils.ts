@@ -52,7 +52,7 @@ function spawn(script: string, argv: string[]): Promise<string> {
 
 export function createCliForTest(path: string) {
   beforeAll(async () => {
-    const result = await fork("./bin/index.js", [path]);
+    const result = await fork("./bin/index.js", [path, "--project", __dirname]);
     if (result.stderr !== "") {
       throw new Error("Fixture generation fail. " + result.stderr);
     }

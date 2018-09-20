@@ -1,43 +1,63 @@
 #!/usr/bin/env node
 
-import * as fs from "fs";
-import { promisify } from "util";
 import * as ts from "typescript";
 
 import { emitAndGetCliSignature } from "./emitAndGetCliSignature";
-import { replaceExtension } from "./replaceExtension";
 
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
-const chmod = promisify(fs.chmod);
+const defaultOptions = {
+  target: ts.ScriptTarget.ES5,
+  module: ts.ModuleKind.CommonJS
+};
 
-const wrapperSourceFile = `${__dirname}/wrapper.js`;
+function getConfigSearchPath(argv: string[]) {
+  if (argv[3] === "--project" || argv[3] === "-p") {
+    if (argv[4] == null) {
+      throw new Error(`Missing value for argument ${argv[3]}`);
+    }
 
-async function generateCli(
-  fileName: string,
-  options: ts.CompilerOptions
-): Promise<void> {
+    return argv[4];
+  }
+
+  return (<any>ts).normalizePath(ts.sys.getCurrentDirectory());
+}
+
+function getConfig(argv: string[]) {
+  const configFileName = ts.findConfigFile(
+    getConfigSearchPath(argv),
+    ts.sys.fileExists
+  );
+
+  if (configFileName === undefined) {
+    console.log("tsconfig.json not found. Fallback to default config.");
+    return defaultOptions;
+  }
+
+  const host: ts.ParseConfigFileHost = <any>ts.sys;
+  const parsedCommandLine = ts.getParsedCommandLineOfConfigFile(
+    configFileName,
+    {},
+    host
+  );
+
+  if (parsedCommandLine === undefined) {
+    return defaultOptions;
+  }
+
+  return parsedCommandLine.options;
+}
+
+async function generateCli(argv: string[]): Promise<void> {
+  const fileName = argv[2];
+
+  if (fileName === undefined) {
+    throw new Error("Typescript file path is missing");
+  }
+
+  const options = getConfig(argv);
+
   let program = ts.createProgram([fileName], options);
 
-  const signature = emitAndGetCliSignature(fileName, program);
-
-  const outputFile = replaceExtension(fileName, ".js");
-  const outputJs = await readFile(outputFile, "utf-8");
-  const cliEntryPoint = await readFile(wrapperSourceFile, "utf-8");
-
-  await writeFile(
-    outputFile,
-    `#!/usr/bin/env node
-${outputJs}
-${cliEntryPoint}
-exports.default.apply(null, TYPESCRIPT_TO_CLI_PREPARE_PARAMS(${JSON.stringify(
-      signature
-    )}, process.argv.slice(2)));
-`
-  );
-  await chmod(outputFile, "755");
-
-  console.log(`${outputFile} CLI has been generated.`);
+  await emitAndGetCliSignature(fileName, program);
 }
 
 if (process.argv.length < 2) {
@@ -46,10 +66,7 @@ if (process.argv.length < 2) {
 }
 
 try {
-  generateCli(process.argv[2], {
-    target: ts.ScriptTarget.ES5,
-    module: ts.ModuleKind.CommonJS
-  }).catch(err => {
+  generateCli(process.argv).catch(err => {
     process.stderr.write(err.message);
     process.exit(1);
   });

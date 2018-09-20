@@ -2,11 +2,17 @@ import * as ts from "typescript";
 import { CliSignature, CliType } from "./types";
 import * as path from "path";
 import { replaceExtension } from "./replaceExtension";
+import * as fs from "fs";
+import { promisify } from "util";
 
-export function emitAndGetCliSignature(
+const readFile = promisify(fs.readFile);
+
+const wrapperSourceFile = `${__dirname}/wrapper.js`;
+
+export async function emitAndGetCliSignature(
   fileName: string,
   program: ts.Program
-): CliSignature {
+): Promise<void> {
   let checker = program.getTypeChecker();
 
   const sourceFile = program.getSourceFile(fileName);
@@ -48,45 +54,43 @@ export function emitAndGetCliSignature(
     };
   });
 
-  // const transformerFactory: ts.TransformerFactory<ts.SourceFile> = (
-  //   context: ts.TransformationContext
-  // ) => {
-  //   function visitor(ctx: ts.TransformationContext, sf: ts.SourceFile) {
-  //     const visitor: ts.Visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
-  //       if (
-  //         ts.isFunctionDeclaration(node) &&
-  //         ts.getCombinedModifierFlags(node) === ts.ModifierFlags.ExportDefault
-  //       ) {
-  //         return ts.createFunctionDeclaration(
-  //           node.decorators,
-  //           node.modifiers,
-  //           node.asteriskToken,
-  //           "ENTRY_POINT",
-  //           node.typeParameters,
-  //           node.parameters,
-  //           node.type,
-  //           node.body
-  //         );
-  //       }
-  //       return ts.visitEachChild(node, visitor, ctx);
-  //     };
-  //     return visitor;
-  //   }
+  const outputFileName = path.parse(fileName).name;
 
-  //   return (sf: ts.SourceFile) => {
-  //     return ts.visitNode(sf, visitor(context, sf));
-  //   };
-  // };
+  const prepareParamsJsCode = await readFile(wrapperSourceFile, "utf-8");
 
-  program.emit(sourceFile, undefined, undefined, undefined, {
-    // before: [transformerFactory]
-  });
-
-  return {
+  const result = {
     fileName: path.parse(replaceExtension(fileName, ".js")).base,
     parameters: cliParameters,
     documentation: getSymbolDocumentation(checker, signature)
   };
+
+  program.emit(
+    undefined,
+    (
+      fileName: string,
+      data: string,
+      writeByteOrderMark: boolean,
+      onError,
+      sourceFiles
+    ) => {
+      if (outputFileName === path.parse(fileName).name) {
+        ts.sys.writeFile(
+          fileName,
+          `#!/usr/bin/env node
+${data}
+${prepareParamsJsCode}
+exports.default.apply(null, TYPESCRIPT_TO_CLI_PREPARE_PARAMS(${JSON.stringify(
+            result
+          )}, process.argv.slice(2)));
+`,
+          writeByteOrderMark
+        );
+        fs.chmodSync(fileName, "755");
+      } else {
+        ts.sys.writeFile(fileName, data, writeByteOrderMark);
+      }
+    }
+  );
 }
 
 function getSymbolDocumentation(
