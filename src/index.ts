@@ -28,7 +28,7 @@ function getConfig(argv: string[]) {
   );
 
   if (configFileName === undefined) {
-    console.log("tsconfig.json not found. Fallback to default config.");
+    // console.log("tsconfig.json not found. Fallback to default config.");
     return defaultOptions;
   }
 
@@ -61,16 +61,16 @@ async function generateCli(argv: string[]): Promise<void> {
 }
 
 if (process.argv.length < 2) {
-  process.stderr.write("Typescript file path is missing");
+  process.stderr.write("Typescript file path is missing\n");
   process.exit(1);
 }
 
 try {
   generateCli(process.argv).catch(err => {
-    process.stderr.write(err.message);
+    process.stderr.write(err.message + "\n");
     process.exit(1);
   });
 } catch (err) {
-  process.stderr.write(err.message);
+  process.stderr.write(err.message + "\n");
   process.exit(1);
 }

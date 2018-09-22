@@ -86,6 +86,7 @@ exports.default.apply(null, TYPESCRIPT_TO_CLI_PREPARE_PARAMS(${JSON.stringify(
           writeByteOrderMark
         );
         fs.chmodSync(fileName, "755");
+        console.log(`${fileName} CLI has been generated`);
       } else {
         ts.sys.writeFile(fileName, data, writeByteOrderMark);
       }
