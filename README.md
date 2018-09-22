@@ -9,7 +9,10 @@ typescript-to-cli leverages the typescript type system to generate a CLI based o
 - **Generates help** based on the documentation
 
 :warning:
-This is an experimental project! A lot of features are missing and it probably contains some bugs.
+
+**This is an experimental project! A lot of features are missing and it probably contains some bugs.
+If one of your use case is not supported, please create an issue or contact me on [twitter](https://twitter.com/guillaume_slls).**
+
 :warning:
 
 ## Usage
