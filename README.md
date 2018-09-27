@@ -104,7 +104,7 @@ Options:
 
 ## Generate the CLI from a js module and JSDoc type annotations
 
-`typescript-to-cli` can also infer the parameters types from JSDoc annotations. However, your `tsconfig.json` should allow js files with `"allowJs": true` and an `outDir` to avoid overriding the input file. Let take the same previous example but with JSDoc type annotations instead.
+`typescript-to-cli` can also infer the parameters types from JSDoc annotations. However, your `tsconfig.json` should allow js files with `"allowJs": true` and an `outDir` to avoid overriding the input file. Let's take the same previous example but with JSDoc type annotations instead.
 
 **send-ships.js**
 
