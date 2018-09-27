@@ -102,7 +102,7 @@ Options:
 --armed                    whether the ships are equipped with weapons or not
 ```
 
-## Generate the CLI from a js module and JSDoc annotations
+## Generate the CLI from a js module and JSDoc type annotations
 
 `typescript-to-cli` can also infer the parameters types from JSDoc annotations. However, your `tsconfig.json` should allow js files with `"allowJs": true` and an `outDir` to avoid overriding the input file. Let take the same previous example but with JSDoc type annotations instead.
 
