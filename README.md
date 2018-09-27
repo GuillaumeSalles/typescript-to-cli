@@ -40,14 +40,23 @@ export default function(
 }
 ```
 
-### Create the CLI
+### Generate the CLI
 
 ```console
 $ npx typescript-to-cli ./send-ships.ts
 send-ships.js CLI has been generated.
 ```
 
-### Call the created CLI
+#### tsconfig.json resolution
+
+If `typescript-to-cli` detects a `tsconfig.json` in the current folder, it will use it to generate the CLI. If you want to use a custom `tsconfig.json`, you can use the command line option `--project` (or just `-p`) that specifies the path of a directory containing a `tsconfig.json` file, or a path to a valid .json file containing the configurations.
+
+```console
+$ npx typescript-to-cli ./send-ships.ts --project ./path-to-config/tsconfig.json
+send-ships.js CLI has been generated.
+```
+
+### Execute the CLI
 
 ```console
 $ ./send-ships.js --destination Mars --number-of-ships 5 --armed
@@ -93,9 +102,45 @@ Options:
 --armed                    whether the ships are equipped with weapons or not
 ```
 
+## Generate the CLI from a js module and JSDoc annotations
+
+`typescript-to-cli` can also infer the parameters types from JSDoc annotations. However, your `tsconfig.json` should allow js files with `"allowJs": true` and an `outDir` to avoid overriding the input file. Let take the same previous example but with JSDoc type annotations instead.
+
+**send-ships.js**
+
+```javascript
+/**
+ * Send ships to the specified destination
+ *
+ * @param {string} destination the ships target
+ * @param {number} numberOfShips the number of ships to send
+ * @param {boolean} armed whether the ships are equipped with weapons or not
+ */
+export default function(destination, numberOfShips, armed) {
+  console.log(
+    `You sent ${numberOfShips} ${armed ? "armed" : ""} ships to ${destination}.`
+  );
+}
+```
+
+**tsconfig.json**
+```json
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "outDir": "dist"
+  }
+}
+```
+
+```console
+$ npx typescript-to-cli ./send-ships.js
+./dist/send-ships.js CLI has been generated.
+```
+
+
 ## Limitations
 
 - Supports only boolean, number and string
 - All arguments are required
-- Don't accept a custom `tsconfig.json`
 - No argument shorcut
