@@ -2,23 +2,23 @@ import { TYPESCRIPT_TO_CLI } from "./wrapper";
 import { CliType, CliParameter, CliTypeKind } from "./types";
 import { cliParam, aSimpleType, aStringsLiterals } from "./fixtures";
 
-function prepareParams(
-  parameters: CliParameter[],
-  argv: string[],
-  fileName: string = "dummy",
-  documentation: string = null
-) {
-  return TYPESCRIPT_TO_CLI().prepareParams(
-    {
-      fileName,
-      documentation,
-      parameters: parameters
-    },
-    argv
-  );
-}
-
 describe("prepareParams", () => {
+  function prepareParams(
+    parameters: CliParameter[],
+    argv: string[],
+    fileName: string = "dummy",
+    documentation: string = null
+  ) {
+    return TYPESCRIPT_TO_CLI().prepareParams(
+      {
+        fileName,
+        documentation,
+        parameters: parameters
+      },
+      argv
+    );
+  }
+
   describe("boolean", () => {
     test("should handle false value", () => {
       expect(
@@ -112,5 +112,79 @@ describe("prepareParams", () => {
         prepareParams([cliParam(primaryColorsType, "--arg1", true)], [])
       ).toEqual([undefined]);
     });
+  });
+});
+
+describe("help", () => {
+  function help(
+    parameters: CliParameter[],
+    fileName: string = "dummy",
+    documentation: string = null
+  ) {
+    return TYPESCRIPT_TO_CLI().help({
+      fileName,
+      documentation,
+      parameters: parameters
+    });
+  }
+
+  test("number without documentation", () => {
+    expect(
+      help(
+        [cliParam(aSimpleType(CliTypeKind.Number), "--arg1", false)],
+        "dummy.js",
+        "Description"
+      )
+    ).toBe(`Usage dummy.js [options]
+
+Description
+
+Options:
+
+--help           output usage information
+--arg1 <number>  
+`);
+  });
+
+  test("optional number without documentation", () => {
+    expect(
+      help(
+        [cliParam(aSimpleType(CliTypeKind.Number), "--arg1", true)],
+        "dummy.js",
+        "Description"
+      )
+    ).toBe(`Usage dummy.js [options]
+
+Description
+
+Options:
+
+--help           output usage information
+--arg1 [number]  
+`);
+  });
+
+  test("strings literals", () => {
+    expect(
+      help(
+        [
+          cliParam(
+            aStringsLiterals(["cyan", "magenta", "yellow"]),
+            "--color",
+            false
+          )
+        ],
+        "dummy.js",
+        "Description"
+      )
+    ).toBe(`Usage dummy.js [options]
+
+Description
+
+Options:
+
+--help                         output usage information
+--color <cyan|magenta|yellow>  
+`);
   });
 });

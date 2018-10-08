@@ -9,13 +9,17 @@ export function TYPESCRIPT_TO_CLI() {
   }
 
   function parameterLeftDocumentation(parameter: CliParameter): string {
+    const formatType = (str: string) =>
+      parameter.isOptional ? ` [${str}]` : ` <${str}>`;
     switch (parameter.type.kind) {
       case CliTypeKind.Boolean:
         return parameter.name;
       case CliTypeKind.String:
-        return parameter.name + " <string>";
+        return parameter.name + formatType("string");
       case CliTypeKind.Number:
-        return parameter.name + " <number>";
+        return parameter.name + formatType("number");
+      case CliTypeKind.StringLiterals:
+        return parameter.name + formatType(parameter.type.values.join("|"));
       default:
         throw new Error(`Unknown cli parameter type: ${parameter.type}`);
     }
