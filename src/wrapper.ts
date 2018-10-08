@@ -131,7 +131,7 @@ ${parametersDocumentation(signature.parameters)}
   }
 
   function prepareParams(signature: CliSignature, argv: string[]): any[] {
-    const finalParameters: any[] = [];
+    const finalParameters: any[] = new Array(signature.parameters.length);
 
     const argvIterator = argv[Symbol.iterator]();
     let iteratorItem = argvIterator.next();

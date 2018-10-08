@@ -1,19 +1,6 @@
 import { TYPESCRIPT_TO_CLI } from "./wrapper";
 import { CliType, CliParameter } from "./types";
-
-function cliParam(
-  type: CliType,
-  name: string,
-  isOptional: boolean = false,
-  documentation: string = null
-): CliParameter {
-  return {
-    type,
-    name,
-    isOptional,
-    documentation
-  };
-}
+import { cliParam } from "./fixtures";
 
 function prepareParams(
   parameters: CliParameter[],
@@ -57,6 +44,14 @@ describe("prepareParams", () => {
       expect(() =>
         prepareParams([cliParam(CliType.String, "--arg1")], ["--arg1"])
       ).toThrow(new Error("Missing value for argument --arg1"));
+    });
+  });
+
+  describe("optional number", () => {
+    test("should handle any undefined", () => {
+      expect(
+        prepareParams([cliParam(CliType.Number, "--arg1", true)], [])
+      ).toEqual([undefined]);
     });
   });
 });

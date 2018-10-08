@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import { CliSignature, CliType } from "./types";
+import { CliSignature, CliType, CliParameter } from "./types";
 import * as path from "path";
 import { replaceExtension } from "./replaceExtension";
 import * as fs from "fs";
@@ -9,10 +9,10 @@ const readFile = promisify(fs.readFile);
 
 const wrapperSourceFile = `${__dirname}/wrapper.js`;
 
-export async function emitAndGetCliSignature(
-  fileName: string,
-  program: ts.Program
-): Promise<void> {
+export function getCliSignature(
+  program: ts.Program,
+  fileName: string
+): CliSignature {
   let checker = program.getTypeChecker();
 
   const sourceFile = program.getSourceFile(fileName);
@@ -51,19 +51,33 @@ export async function emitAndGetCliSignature(
       type: tsTypeToCliType(paramType),
       name: "--" + camelToKebab(param.getName()),
       documentation: getSymbolDocumentation(checker, param),
-      isOptional: paramType.flags & ts.TypeFlags.Undefined
-    };
+      isOptional: isTypeOptional(paramType)
+    } as CliParameter;
   });
 
-  const outputFileName = path.parse(fileName).name;
-
-  const prepareParamsJsCode = await readFile(wrapperSourceFile, "utf-8");
-
-  const result = {
+  return {
     fileName: path.parse(replaceExtension(fileName, ".js")).base,
     parameters: cliParameters,
     documentation: getSymbolDocumentation(checker, signature)
   };
+}
+
+function isTypeOptional(type: ts.Type): boolean {
+  if (type.isUnion()) {
+    return type.types.some(t => !!(t.flags & ts.TypeFlags.Undefined));
+  }
+  return false;
+}
+
+export async function emitAndGetCliSignature(
+  fileName: string,
+  program: ts.Program
+): Promise<void> {
+  const result = getCliSignature(program, fileName);
+
+  const outputFileName = path.parse(fileName).name;
+
+  const prepareParamsJsCode = await readFile(wrapperSourceFile, "utf-8");
 
   program.emit(
     undefined,
