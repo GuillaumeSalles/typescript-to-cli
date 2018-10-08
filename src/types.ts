@@ -8,6 +8,7 @@ export type CliParameter = {
   type: CliType;
   name: string;
   documentation: string | null;
+  isOptional: boolean;
 };
 
 export type CliSignature = {

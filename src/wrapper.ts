@@ -1,9 +1,6 @@
 import { CliParameter, CliType, CliSignature } from "./types";
 
-function TYPESCRIPT_TO_CLI_PREPARE_PARAMS(
-  signature: CliSignature,
-  argv: string[]
-) {
+export function TYPESCRIPT_TO_CLI() {
   function padWithWhiteSpaces(str: string, length: number) {
     for (let i = str.length; i < length; i++) {
       str += " ";
@@ -149,7 +146,7 @@ ${parametersDocumentation(signature.parameters)}
       if (finalParameter === undefined) {
         if (signature.parameters[i].type === CliType.Boolean) {
           finalParameters[i] = false;
-        } else {
+        } else if (signature.parameters[i].isOptional === false) {
           throw new Error(`Missing argument ${signature.parameters[i].name}`);
         }
       }
@@ -158,15 +155,21 @@ ${parametersDocumentation(signature.parameters)}
     return finalParameters;
   }
 
-  if (argv[0] === "--help") {
-    displayHelpAndExit(signature);
-    return;
-  }
+  return {
+    prepareParams: prepareParams,
+    execute: function(signature: CliSignature) {
+      const argv = process.argv.slice(2);
+      if (argv[0] === "--help") {
+        displayHelpAndExit(signature);
+        return;
+      }
 
-  try {
-    return prepareParams(signature, argv);
-  } catch (err) {
-    process.stderr.write(err.message + "\n");
-    process.exit(1);
-  }
+      try {
+        return prepareParams(signature, argv);
+      } catch (err) {
+        process.stderr.write(err.message + "\n");
+        process.exit(1);
+      }
+    }
+  };
 }

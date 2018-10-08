@@ -50,7 +50,8 @@ export async function emitAndGetCliSignature(
     return {
       type: tsTypeToCliType(paramType),
       name: "--" + camelToKebab(param.getName()),
-      documentation: getSymbolDocumentation(checker, param)
+      documentation: getSymbolDocumentation(checker, param),
+      isOptional: paramType.flags & ts.TypeFlags.Undefined
     };
   });
 
@@ -79,9 +80,9 @@ export async function emitAndGetCliSignature(
           `#!/usr/bin/env node
 ${data}
 ${prepareParamsJsCode}
-exports.default.apply(null, TYPESCRIPT_TO_CLI_PREPARE_PARAMS(${JSON.stringify(
+exports.default.apply(null, TYPESCRIPT_TO_CLI().execute(${JSON.stringify(
             result
-          )}, process.argv.slice(2)));
+          )}));
 `,
           writeByteOrderMark
         );
@@ -104,15 +105,27 @@ function getSymbolDocumentation(
   return displayPart ? displayPart.text : null;
 }
 
-function tsTypeToCliType(type: ts.Type) {
+function tsTypeToCliType(type: ts.Type): CliType {
+  if (type.flags === 67371024) {
+    return CliType.Boolean;
+  }
   if (type.flags === ts.TypeFlags.Number) {
     return CliType.Number;
   }
   if (type.flags === ts.TypeFlags.String) {
     return CliType.String;
   }
-  if (type.flags === 67371024) {
-    return CliType.Boolean;
+  if (type.isUnion() && type.types.length == 2) {
+    const sortedTypesFlags = type.types.map(t => t.flags).sort((a, b) => a - b);
+
+    if (sortedTypesFlags[1] === ts.TypeFlags.Undefined) {
+      if (sortedTypesFlags[0] === ts.TypeFlags.Number) {
+        return CliType.Number;
+      }
+      if (sortedTypesFlags[0] === ts.TypeFlags.String) {
+        return CliType.String;
+      }
+    }
   }
 
   throw new Error(

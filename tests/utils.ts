@@ -56,6 +56,7 @@ export function createCliForTest(path: string) {
     if (result.stderr !== "") {
       throw new Error("Fixture generation fail. " + result.stderr);
     }
+    console.log(result);
   }, 10000);
 
   return (argv: string[]) => fork(replaceExtension(path, ".js"), argv);
