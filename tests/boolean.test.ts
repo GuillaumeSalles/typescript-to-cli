@@ -8,6 +8,6 @@ describe("boolean", () => {
   });
 
   test("should handle false value", async () => {
-    expect(await callCli([""])).toEqual(stdout("false"));
+    expect(await callCli([])).toEqual(stdout("false"));
   });
 });

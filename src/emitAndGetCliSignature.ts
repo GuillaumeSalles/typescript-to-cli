@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import { CliSignature, CliType } from "./types";
+import { CliSignature, CliType, CliParameter, CliTypeKind } from "./types";
 import * as path from "path";
 import { replaceExtension } from "./replaceExtension";
 import * as fs from "fs";
@@ -9,10 +9,10 @@ const readFile = promisify(fs.readFile);
 
 const wrapperSourceFile = `${__dirname}/wrapper.js`;
 
-export async function emitAndGetCliSignature(
-  fileName: string,
-  program: ts.Program
-): Promise<void> {
+export function getCliSignature(
+  program: ts.Program,
+  fileName: string
+): CliSignature {
   let checker = program.getTypeChecker();
 
   const sourceFile = program.getSourceFile(fileName);
@@ -50,19 +50,34 @@ export async function emitAndGetCliSignature(
     return {
       type: tsTypeToCliType(paramType),
       name: "--" + camelToKebab(param.getName()),
-      documentation: getSymbolDocumentation(checker, param)
-    };
+      documentation: getSymbolDocumentation(checker, param),
+      isOptional: isTypeOptional(paramType)
+    } as CliParameter;
   });
 
-  const outputFileName = path.parse(fileName).name;
-
-  const prepareParamsJsCode = await readFile(wrapperSourceFile, "utf-8");
-
-  const result = {
+  return {
     fileName: path.parse(replaceExtension(fileName, ".js")).base,
     parameters: cliParameters,
     documentation: getSymbolDocumentation(checker, signature)
   };
+}
+
+function isTypeOptional(type: ts.Type): boolean {
+  if (type.isUnion()) {
+    return type.types.some(t => !!(t.flags & ts.TypeFlags.Undefined));
+  }
+  return false;
+}
+
+export async function emitAndGetCliSignature(
+  fileName: string,
+  program: ts.Program
+): Promise<void> {
+  const result = getCliSignature(program, fileName);
+
+  const outputFileName = path.parse(fileName).name;
+
+  const prepareParamsJsCode = await readFile(wrapperSourceFile, "utf-8");
 
   program.emit(
     undefined,
@@ -79,9 +94,9 @@ export async function emitAndGetCliSignature(
           `#!/usr/bin/env node
 ${data}
 ${prepareParamsJsCode}
-exports.default.apply(null, TYPESCRIPT_TO_CLI_PREPARE_PARAMS(${JSON.stringify(
+exports.default.apply(null, TYPESCRIPT_TO_CLI().execute(${JSON.stringify(
             result
-          )}, process.argv.slice(2)));
+          )}));
 `,
           writeByteOrderMark
         );
@@ -104,15 +119,43 @@ function getSymbolDocumentation(
   return displayPart ? displayPart.text : null;
 }
 
-function tsTypeToCliType(type: ts.Type) {
+function tsTypeToCliType(type: ts.Type): CliType {
+  if (type.flags === 67371024) {
+    return { kind: CliTypeKind.Boolean };
+  }
   if (type.flags === ts.TypeFlags.Number) {
-    return CliType.Number;
+    return { kind: CliTypeKind.Number };
   }
   if (type.flags === ts.TypeFlags.String) {
-    return CliType.String;
+    return { kind: CliTypeKind.String };
   }
-  if (type.flags === 67371024) {
-    return CliType.Boolean;
+  if (type.isUnion()) {
+    const subtypes = type.types.filter(t => t.flags !== ts.TypeFlags.Undefined);
+
+    if (subtypes.length === 0) {
+      throw new Error(
+        "Unexpected error. Union type should have at least 2 subtypes"
+      );
+    }
+
+    if (subtypes.length === 1 && subtypes[0].flags === ts.TypeFlags.Number) {
+      return { kind: CliTypeKind.Number };
+    }
+    if (subtypes.length === 1 && subtypes[0].flags === ts.TypeFlags.String) {
+      return { kind: CliTypeKind.Boolean };
+    }
+
+    if (subtypes[0].isStringLiteral()) {
+      return {
+        kind: CliTypeKind.StringLiterals,
+        values: subtypes.map(t => {
+          if (t.isStringLiteral()) {
+            return t.value;
+          }
+          throw new Error("Parameters can't allow differents value types");
+        })
+      };
+    }
   }
 
   throw new Error(
