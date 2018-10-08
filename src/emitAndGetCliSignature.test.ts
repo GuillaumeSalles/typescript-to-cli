@@ -1,21 +1,40 @@
 import { getCliSignature } from "./emitAndGetCliSignature";
 import * as ts from "typescript";
-import { CliSignature, CliType } from "./types";
-import { cliParam } from "./fixtures";
+import { CliSignature, CliType, CliTypeKind } from "./types";
+import { cliParam, aSimpleType, aStringsLiterals } from "./fixtures";
 
 describe("getCliSignature", () => {
   test("boolean", () => {
     expect(
       getCliMetadataFromString(`
       export default function(x: boolean) {}`).parameters
-    ).toEqual([cliParam(CliType.Boolean, "--x", false)]);
+    ).toEqual([cliParam(aSimpleType(CliTypeKind.Boolean), "--x", false)]);
   });
 
   test("optional number", () => {
     expect(
       getCliMetadataFromString(`
       export default function(x: number | undefined) {}`).parameters
-    ).toEqual([cliParam(CliType.Number, "--x", true)]);
+    ).toEqual([cliParam(aSimpleType(CliTypeKind.Number), "--x", true)]);
+  });
+
+  test("string literals", () => {
+    expect(
+      getCliMetadataFromString(`
+      export default function(x: 'cyan' | 'majenta' | 'yellow') {}`).parameters
+    ).toEqual([
+      cliParam(aStringsLiterals(["cyan", "majenta", "yellow"]), "--x", false)
+    ]);
+  });
+
+  test("optional string literals", () => {
+    expect(
+      getCliMetadataFromString(`
+      export default function(x: 'cyan' | 'majenta' | 'yellow' | undefined) {}`)
+        .parameters
+    ).toEqual([
+      cliParam(aStringsLiterals(["cyan", "majenta", "yellow"]), "--x", true)
+    ]);
   });
 });
 

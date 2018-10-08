@@ -1,4 +1,10 @@
-import { CliType, CliParameter } from "./types";
+import {
+  CliType,
+  CliParameter,
+  CliTypeKind,
+  StringLiterals,
+  SimpleType
+} from "./types";
 
 export function cliParam(
   type: CliType,
@@ -11,5 +17,20 @@ export function cliParam(
     name,
     isOptional,
     documentation
+  };
+}
+
+export function aSimpleType(
+  kind: CliTypeKind.Boolean | CliTypeKind.Number | CliTypeKind.String
+): SimpleType {
+  return {
+    kind
+  };
+}
+
+export function aStringsLiterals(values: string[]): StringLiterals {
+  return {
+    kind: CliTypeKind.StringLiterals,
+    values
   };
 }

@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import { CliSignature, CliType, CliParameter } from "./types";
+import { CliSignature, CliType, CliParameter, CliTypeKind } from "./types";
 import * as path from "path";
 import { replaceExtension } from "./replaceExtension";
 import * as fs from "fs";
@@ -121,24 +121,40 @@ function getSymbolDocumentation(
 
 function tsTypeToCliType(type: ts.Type): CliType {
   if (type.flags === 67371024) {
-    return CliType.Boolean;
+    return { kind: CliTypeKind.Boolean };
   }
   if (type.flags === ts.TypeFlags.Number) {
-    return CliType.Number;
+    return { kind: CliTypeKind.Number };
   }
   if (type.flags === ts.TypeFlags.String) {
-    return CliType.String;
+    return { kind: CliTypeKind.String };
   }
-  if (type.isUnion() && type.types.length == 2) {
-    const sortedTypesFlags = type.types.map(t => t.flags).sort((a, b) => a - b);
+  if (type.isUnion()) {
+    const subtypes = type.types.filter(t => t.flags !== ts.TypeFlags.Undefined);
 
-    if (sortedTypesFlags[1] === ts.TypeFlags.Undefined) {
-      if (sortedTypesFlags[0] === ts.TypeFlags.Number) {
-        return CliType.Number;
-      }
-      if (sortedTypesFlags[0] === ts.TypeFlags.String) {
-        return CliType.String;
-      }
+    if (subtypes.length === 0) {
+      throw new Error(
+        "Unexpected error. Union type should have at least 2 subtypes"
+      );
+    }
+
+    if (subtypes.length === 1 && subtypes[0].flags === ts.TypeFlags.Number) {
+      return { kind: CliTypeKind.Number };
+    }
+    if (subtypes.length === 1 && subtypes[0].flags === ts.TypeFlags.String) {
+      return { kind: CliTypeKind.Boolean };
+    }
+
+    if (subtypes[0].isStringLiteral()) {
+      return {
+        kind: CliTypeKind.StringLiterals,
+        values: subtypes.map(t => {
+          if (t.isStringLiteral()) {
+            return t.value;
+          }
+          throw new Error("Parameters can't allow differents value types");
+        })
+      };
     }
   }
 

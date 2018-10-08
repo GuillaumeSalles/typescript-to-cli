@@ -1,4 +1,4 @@
-import { CliParameter, CliType, CliSignature } from "./types";
+import { CliParameter, CliType, CliSignature, CliTypeKind } from "./types";
 
 export function TYPESCRIPT_TO_CLI() {
   function padWithWhiteSpaces(str: string, length: number) {
@@ -9,12 +9,12 @@ export function TYPESCRIPT_TO_CLI() {
   }
 
   function parameterLeftDocumentation(parameter: CliParameter): string {
-    switch (parameter.type) {
-      case CliType.Boolean:
+    switch (parameter.type.kind) {
+      case CliTypeKind.Boolean:
         return parameter.name;
-      case CliType.String:
+      case CliTypeKind.String:
         return parameter.name + " <string>";
-      case CliType.Number:
+      case CliTypeKind.Number:
         return parameter.name + " <number>";
       default:
         throw new Error(`Unknown cli parameter type: ${parameter.type}`);
@@ -40,17 +40,14 @@ export function TYPESCRIPT_TO_CLI() {
     return help + "\n" + parametersDoc;
   }
 
-  function displayHelpAndExit(signature: CliSignature) {
-    process.stdout.write(
-      `Usage ${signature.fileName} [options]
+  function help(signature: CliSignature) {
+    return `Usage ${signature.fileName} [options]
 
 ${signature.documentation !== null ? signature.documentation + "\n" : ""}
 Options:
 
 ${parametersDocumentation(signature.parameters)}
-`
-    );
-    process.exit(0);
+`;
   }
 
   function isNumber(num: string) {
@@ -60,23 +57,7 @@ ${parametersDocumentation(signature.parameters)}
     return false;
   }
 
-  function extractStringFromArg(
-    value: string | undefined,
-    parameter: string
-  ): string {
-    if (value === undefined) {
-      throw new Error(`Missing value for argument ${parameter}`);
-    }
-    return value;
-  }
-
-  function extractNumberFromArg(
-    value: string | undefined,
-    parameter: string
-  ): number {
-    if (value === undefined) {
-      throw new Error(`Missing value for argument ${parameter}`);
-    }
+  function extractNumberFromArg(value: string, parameter: string): number {
     if (!isNumber(value)) {
       throw new Error(`${parameter} should be a number`);
     }
@@ -87,13 +68,26 @@ ${parametersDocumentation(signature.parameters)}
     parameter: CliParameter,
     value: string
   ): string | number {
-    switch (parameter.type) {
-      case CliType.Number:
+    if (value === undefined) {
+      throw new Error(`Missing value for argument ${parameter.name}`);
+    }
+
+    switch (parameter.type.kind) {
+      case CliTypeKind.Number:
         return extractNumberFromArg(value, parameter.name);
-      case CliType.String:
-        return extractStringFromArg(value, parameter.name);
+      case CliTypeKind.String:
+        return value;
+      case CliTypeKind.StringLiterals:
+        if (parameter.type.values.indexOf(value) === -1) {
+          throw new Error(
+            `${value} is not allowed for ${
+              parameter.name
+            }. Allowed values: ${parameter.type.values.join(", ")}`
+          );
+        }
+        return value;
       default:
-        throw new Error(`Invalid argument type ${parameter.type}`);
+        throw new Error(`Invalid argument type ${parameter.type.kind}`);
     }
   }
 
@@ -107,7 +101,7 @@ ${parametersDocumentation(signature.parameters)}
       let parameter = signature.parameters[i];
 
       if (arg === parameter.name) {
-        if (parameter.type === CliType.Boolean) {
+        if (parameter.type.kind === CliTypeKind.Boolean) {
           finalParams[i] = true;
         } else {
           finalParams[i] = extractValueFromArg(
@@ -144,7 +138,7 @@ ${parametersDocumentation(signature.parameters)}
     for (let i = 0; i < signature.parameters.length; i++) {
       const finalParameter = finalParameters[i];
       if (finalParameter === undefined) {
-        if (signature.parameters[i].type === CliType.Boolean) {
+        if (signature.parameters[i].type.kind === CliTypeKind.Boolean) {
           finalParameters[i] = false;
         } else if (signature.parameters[i].isOptional === false) {
           throw new Error(`Missing argument ${signature.parameters[i].name}`);
@@ -156,11 +150,13 @@ ${parametersDocumentation(signature.parameters)}
   }
 
   return {
-    prepareParams: prepareParams,
+    prepareParams,
+    help,
     execute: function(signature: CliSignature) {
       const argv = process.argv.slice(2);
       if (argv[0] === "--help") {
-        displayHelpAndExit(signature);
+        process.stdout.write(help(signature));
+        process.exit(0);
         return;
       }
 
