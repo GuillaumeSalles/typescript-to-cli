@@ -100,34 +100,71 @@ ${parametersDocumentation(signature.parameters)}
     }
   }
 
-  function extractParamFromArgv(parameter: CliParameter, argv: string[]): any {
-    if (parameter.type === CliType.Boolean) {
-      return argv.some(arg => arg === parameter.name);
-    }
+  function parseArg(
+    iterator: IterableIterator<string>,
+    signature: CliSignature,
+    arg: string,
+    finalParams: any[]
+  ) {
+    for (let i = 0; i < signature.parameters.length; i++) {
+      let parameter = signature.parameters[i];
 
-    for (let i = 0; i < argv.length; i++) {
-      if (argv[i] === parameter.name) {
-        return extractValueFromArg(parameter, argv[i + 1]);
+      if (arg === parameter.name) {
+        if (parameter.type === CliType.Boolean) {
+          finalParams[i] = true;
+        } else {
+          finalParams[i] = extractValueFromArg(
+            parameter,
+            iterator.next().value
+          );
+        }
+        return;
       }
 
-      if (argv[i].startsWith(parameter.name + "=")) {
-        return extractValueFromArg(
+      if (arg.startsWith(parameter.name + "=")) {
+        finalParams[i] = extractValueFromArg(
           parameter,
-          argv[i].slice(parameter.name.length + 1)
+          arg.slice(parameter.name.length + 1)
         );
+        return;
       }
     }
 
-    throw new Error(`Missing argument ${parameter.name}`);
+    throw new Error(`Unknown argument ${arg}`);
   }
 
-  if (argv.length === 0 || argv[0] === "--help") {
+  function prepareParams(signature: CliSignature, argv: string[]): any[] {
+    const finalParameters: any[] = [];
+
+    const argvIterator = argv[Symbol.iterator]();
+    let iteratorItem = argvIterator.next();
+    while (iteratorItem.done === false) {
+      const arg = iteratorItem.value;
+      parseArg(argvIterator, signature, arg, finalParameters);
+      iteratorItem = argvIterator.next();
+    }
+
+    for (let i = 0; i < signature.parameters.length; i++) {
+      const finalParameter = finalParameters[i];
+      if (finalParameter === undefined) {
+        if (signature.parameters[i].type === CliType.Boolean) {
+          finalParameters[i] = false;
+        } else {
+          throw new Error(`Missing argument ${signature.parameters[i].name}`);
+        }
+      }
+    }
+
+    return finalParameters;
+  }
+
+  if (argv[0] === "--help") {
     displayHelpAndExit(signature);
     return;
   }
 
   try {
-    return signature.parameters.map(p => extractParamFromArgv(p, argv));
+    return prepareParams(signature, argv);
   } catch (err) {
     process.stderr.write(err.message + "\n");
     process.exit(1);
