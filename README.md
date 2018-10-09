@@ -72,6 +72,20 @@ You sent 2 ships to Europa.
 
 ### Examples
 
+#### Missing argument
+
+```console
+$ ./send-ships.js --number-of-ships 5 --armed
+Missing argument --destination
+```
+
+#### Invalid argument type
+
+```console
+$ ./send-ships.js --destination Mars --number-of-ships X --armed
+--number-of-ships should be a number
+```
+
 #### Non required option
 
 ```typescript
@@ -98,22 +112,6 @@ cli.js CLI has been generated.
 
 $ ./cli.js --primary-color green
 --primary-color does not accept the value "green". Allowed values: cyan, magenta, yellow
-```
-
-### Argument validation
-
-#### Missing argument
-
-```console
-$ ./send-ships.js --number-of-ships 5 --armed
-Missing argument --destination
-```
-
-#### Invalid argument type
-
-```console
-$ ./send-ships.js --destination Mars --number-of-ships X --armed
---number-of-ships should be a number
 ```
 
 ### Display help
