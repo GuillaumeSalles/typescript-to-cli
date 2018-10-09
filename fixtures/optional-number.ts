@@ -1,3 +1,3 @@
-export default function(x: number | undefined) {
+export default function(x: string | undefined) {
   process.stdout.write(x === undefined ? "undefined" : x.toString());
 }

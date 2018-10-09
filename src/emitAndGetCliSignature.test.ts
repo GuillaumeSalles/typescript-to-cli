@@ -25,6 +25,13 @@ describe("getCliSignature", () => {
     ).toEqual([cliParam(aSimpleType(CliTypeKind.Number), "--x", true)]);
   });
 
+  test("optional string", () => {
+    expect(
+      getCliMetadataFromString(`
+      export default function(x: string | undefined) {}`).parameters
+    ).toEqual([cliParam(aSimpleType(CliTypeKind.String), "--x", true)]);
+  });
+
   test("string literals", () => {
     expect(
       getCliMetadataFromString(`

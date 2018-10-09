@@ -120,7 +120,12 @@ function getSymbolDocumentation(
 }
 
 function tsTypeToCliType(type: ts.Type): CliType {
-  if (type.flags === 67371024) {
+  if (
+    type.isUnion() &&
+    type.types.length === 2 &&
+    type.types[0].flags === ts.TypeFlags.BooleanLiteral &&
+    type.types[1].flags === ts.TypeFlags.BooleanLiteral
+  ) {
     return { kind: CliTypeKind.Boolean };
   }
   if (type.flags === ts.TypeFlags.Number) {
@@ -142,7 +147,7 @@ function tsTypeToCliType(type: ts.Type): CliType {
       return { kind: CliTypeKind.Number };
     }
     if (subtypes.length === 1 && subtypes[0].flags === ts.TypeFlags.String) {
-      return { kind: CliTypeKind.Boolean };
+      return { kind: CliTypeKind.String };
     }
 
     if (subtypes[0].isStringLiteral()) {
