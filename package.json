@@ -1,6 +1,6 @@
 {
   "name": "typescript-to-cli",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Create a cli from a typescript module.",
   "main": "./bin/index.js",
   "scripts": {
