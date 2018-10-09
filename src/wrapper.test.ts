@@ -19,6 +19,28 @@ describe("prepareParams", () => {
     );
   }
 
+  test("should handle unknow option", () => {
+    expect(() =>
+      prepareParams(
+        [cliParam(aSimpleType(CliTypeKind.String), "--color")],
+        ["--xxx"]
+      )
+    ).toThrow(new Error(`Unknown option --xxx`));
+  });
+
+  test("should handle typo", () => {
+    expect(() =>
+      prepareParams(
+        [cliParam(aSimpleType(CliTypeKind.String), "--color")],
+        ["--coolr"]
+      )
+    ).toThrow(
+      new Error(`Unknown option --coolr
+
+Did you mean --color?`)
+    );
+  });
+
   describe("boolean", () => {
     test("should handle false value", () => {
       expect(
@@ -103,6 +125,21 @@ describe("prepareParams", () => {
       ).toThrow(
         new Error(
           `--arg1 does not accept the value "green". Allowed values: cyan, magenta, yellow`
+        )
+      );
+    });
+
+    test("should suggest if value contains a typo", () => {
+      expect(() =>
+        prepareParams(
+          [cliParam(primaryColorsType, "--arg1")],
+          ["--arg1", "cayn"]
+        )
+      ).toThrow(
+        new Error(
+          `--arg1 does not accept the value "cayn". Allowed values: cyan, magenta, yellow
+
+Did you mean cyan?`
         )
       );
     });

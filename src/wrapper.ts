@@ -1,6 +1,95 @@
 import { CliParameter, CliType, CliSignature, CliTypeKind } from "./types";
 
 export function TYPESCRIPT_TO_CLI() {
+  var arr: any[] = [];
+  var charCodeCache: any[] = [];
+  /**
+   * https://github.com/sindresorhus/leven
+   */
+  function leven(a, b) {
+    if (a === b) {
+      return 0;
+    }
+
+    var swap = a;
+
+    // Swapping the strings if `a` is longer than `b` so we know which one is the
+    // shortest & which one is the longest
+    if (a.length > b.length) {
+      a = b;
+      b = swap;
+    }
+
+    var aLen = a.length;
+    var bLen = b.length;
+
+    // Performing suffix trimming:
+    // We can linearly drop suffix common to both strings since they
+    // don't increase distance at all
+    // Note: `~-` is the bitwise way to perform a `- 1` operation
+    while (aLen > 0 && a.charCodeAt(~-aLen) === b.charCodeAt(~-bLen)) {
+      aLen--;
+      bLen--;
+    }
+
+    // Performing prefix trimming
+    // We can linearly drop prefix common to both strings since they
+    // don't increase distance at all
+    var start = 0;
+
+    while (start < aLen && a.charCodeAt(start) === b.charCodeAt(start)) {
+      start++;
+    }
+
+    aLen -= start;
+    bLen -= start;
+
+    if (aLen === 0) {
+      return bLen;
+    }
+
+    var bCharCode;
+    var ret;
+    var tmp;
+    var tmp2;
+    var i = 0;
+    var j = 0;
+
+    while (i < aLen) {
+      charCodeCache[i] = a.charCodeAt(start + i);
+      arr[i] = ++i;
+    }
+
+    while (j < bLen) {
+      bCharCode = b.charCodeAt(start + j);
+      tmp = j++;
+      ret = j;
+
+      for (i = 0; i < aLen; i++) {
+        tmp2 = bCharCode === charCodeCache[i] ? tmp : tmp + 1;
+        tmp = arr[i];
+        ret = arr[i] =
+          tmp > ret
+            ? tmp2 > ret
+              ? ret + 1
+              : tmp2
+            : tmp2 > tmp
+              ? tmp + 1
+              : tmp2;
+      }
+    }
+
+    return ret;
+  }
+
+  function suggestion(unrecognized: string, allowedOptions: string[]): string {
+    const suggestion = allowedOptions.find(
+      option => leven(option, unrecognized) < 3
+    );
+
+    return suggestion ? `\n\nDid you mean ${suggestion}?` : "";
+  }
+
   function padWithWhiteSpaces(str: string, length: number) {
     for (let i = str.length; i < length; i++) {
       str += " ";
@@ -88,13 +177,23 @@ ${parametersDocumentation(signature.parameters)}
               parameter.name
             } does not accept the value "${value}". Allowed values: ${parameter.type.values.join(
               ", "
-            )}`
+            )}${suggestion(value, parameter.type.values)}`
           );
         }
         return value;
       default:
         throw new Error(`Invalid argument type ${parameter.type.kind}`);
     }
+  }
+
+  function unknownOptionMessage(
+    unrecognized: string,
+    signature: CliSignature
+  ): string {
+    return (
+      `Unknown option ${unrecognized}` +
+      suggestion(unrecognized, signature.parameters.map(p => p.name))
+    );
   }
 
   function parseArg(
@@ -127,7 +226,7 @@ ${parametersDocumentation(signature.parameters)}
       }
     }
 
-    throw new Error(`Unknown argument ${arg}`);
+    throw new Error(unknownOptionMessage(arg, signature));
   }
 
   function prepareParams(signature: CliSignature, argv: string[]): any[] {
