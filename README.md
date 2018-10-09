@@ -95,6 +95,7 @@ export default function(primaryColor: "cyan" | "magenta" | "yellow") {}
 ```console
 $ npx typescript-to-cli ./cli.ts
 cli.js CLI has been generated.
+
 $ ./cli.js --primary-color green
 --primary-color does not accept the value "green". Allowed values: cyan, magenta, yellow
 ```
