@@ -84,9 +84,11 @@ ${parametersDocumentation(signature.parameters)}
       case CliTypeKind.StringLiterals:
         if (parameter.type.values.indexOf(value) === -1) {
           throw new Error(
-            `${value} is not allowed for ${
+            `${
               parameter.name
-            }. Allowed values: ${parameter.type.values.join(", ")}`
+            } does not accept the value "${value}". Allowed values: ${parameter.type.values.join(
+              ", "
+            )}`
           );
         }
         return value;

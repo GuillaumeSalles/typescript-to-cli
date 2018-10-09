@@ -102,7 +102,7 @@ describe("prepareParams", () => {
         )
       ).toThrow(
         new Error(
-          "green is not allowed for --arg1. Allowed values: cyan, magenta, yellow"
+          `--arg1 does not accept the value "green". Allowed values: cyan, magenta, yellow`
         )
       );
     });
