@@ -70,20 +70,48 @@ $ ./send-ships.js --destination=Europa --number-of-ships=2
 You sent 2 ships to Europa.
 ```
 
-### Argument validation
+### Examples
 
-Missing argument
+#### Missing argument
 
 ```console
 $ ./send-ships.js --number-of-ships 5 --armed
 Missing argument --destination
 ```
 
-Invalid argument type
+#### Invalid argument type
 
 ```console
 $ ./send-ships.js --destination Mars --number-of-ships X --armed
 --number-of-ships should be a number
+```
+
+#### Non required option
+
+```typescript
+export default function(option: string | undefined) {}
+```
+
+or
+
+```typescript
+export default function(option?: string) {}
+```
+
+#### Restrict option with string literal types
+
+```typescript
+// cli.ts
+
+export default function(primaryColor: "cyan" | "magenta" | "yellow") {}
+```
+
+```console
+$ npx typescript-to-cli ./cli.ts
+cli.js CLI has been generated.
+
+$ ./cli.js --primary-color green
+--primary-color does not accept the value "green". Allowed values: cyan, magenta, yellow
 ```
 
 ### Display help
@@ -141,6 +169,5 @@ $ npx typescript-to-cli ./send-ships.js
 
 ## Limitations
 
-- Supports only boolean, number and string
-- All arguments are required
+- Supports only boolean, number, string, string literals
 - No argument shorcut
