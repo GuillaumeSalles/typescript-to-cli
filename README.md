@@ -6,7 +6,7 @@ typescript-to-cli leverages the typescript type system to generate a CLI based o
 
 - **Parses** the program options
 - **Validates** if the options have the right type
-- **Suggest** correction if the options contain a typo
+- **Suggests** correction if the options contain a typo
 - **Generates help** based on the documentation
 
 :warning:
