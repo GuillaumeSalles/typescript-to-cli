@@ -12,7 +12,7 @@ const defaultOptions = {
 function getConfigSearchPath(argv: string[]) {
   if (argv[3] === "--project" || argv[3] === "-p") {
     if (argv[4] == null) {
-      throw new Error(`Missing value for argument ${argv[3]}`);
+      throw new Error(`Missing value for option ${argv[3]}`);
     }
 
     return argv[4];

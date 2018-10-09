@@ -4,8 +4,9 @@
 
 typescript-to-cli leverages the typescript type system to generate a CLI based on the exported function signature of your module.
 
-- **Parses** the program arguments
-- **Validates** if the arguments have the right type
+- **Parses** the program options
+- **Validates** if the options have the right type
+- **Suggest** correction if the options contain a typo
 - **Generates help** based on the documentation
 
 :warning:
@@ -63,7 +64,7 @@ $ ./send-ships.js --destination Mars --number-of-ships 5 --armed
 You sent 5 armed ships to Mars.
 ```
 
-Or with the `=` symbol between arguments and values
+Or with the `=` symbol between options and values
 
 ```console
 $ ./send-ships.js --destination=Europa --number-of-ships=2
@@ -72,14 +73,14 @@ You sent 2 ships to Europa.
 
 ### Examples
 
-#### Missing argument
+#### Missing option
 
 ```console
 $ ./send-ships.js --number-of-ships 5 --armed
-Missing argument --destination
+Missing option --destination
 ```
 
-#### Invalid argument type
+#### Invalid option type
 
 ```console
 $ ./send-ships.js --destination Mars --number-of-ships X --armed
@@ -152,6 +153,7 @@ export default function(destination, numberOfShips, armed) {
 ```
 
 **tsconfig.json**
+
 ```json
 {
   "compilerOptions": {
@@ -166,8 +168,7 @@ $ npx typescript-to-cli ./send-ships.js
 ./dist/send-ships.js CLI has been generated.
 ```
 
-
 ## Limitations
 
 - Supports only boolean, number, string, string literals
-- No argument shorcut
+- No option shorcut

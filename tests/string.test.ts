@@ -9,7 +9,7 @@ describe("string", () => {
 
   test("should handle missing value", async () => {
     expect(await callCli(["--x"])).toEqual(
-      stderr("Missing value for argument --x\n")
+      stderr("Missing value for option --x\n")
     );
   });
 });

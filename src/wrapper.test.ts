@@ -77,7 +77,7 @@ Did you mean --color?`)
           [cliParam(aSimpleType(CliTypeKind.String), "--arg1")],
           ["--arg1"]
         )
-      ).toThrow(new Error("Missing value for argument --arg1"));
+      ).toThrow(new Error("Missing value for option --arg1"));
     });
   });
 
@@ -113,7 +113,7 @@ Did you mean --color?`)
     test("should throw if missing value", () => {
       expect(() =>
         prepareParams([cliParam(primaryColorsType, "--arg1")], ["--arg1"])
-      ).toThrow(new Error("Missing value for argument --arg1"));
+      ).toThrow(new Error("Missing value for option --arg1"));
     });
 
     test("should throw if value is not allowed", () => {

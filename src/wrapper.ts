@@ -162,7 +162,7 @@ ${parametersDocumentation(signature.parameters)}
     value: string
   ): string | number {
     if (value === undefined) {
-      throw new Error(`Missing value for argument ${parameter.name}`);
+      throw new Error(`Missing value for option ${parameter.name}`);
     }
 
     switch (parameter.type.kind) {
